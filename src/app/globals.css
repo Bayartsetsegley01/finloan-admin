@@ -1,0 +1,231 @@
+/*
+ * FinLoan design system — foundations
+ * ------------------------------------------------------------------
+ * Colors    : CSS variables injected on <html> from the active tenant + theme
+ *             (see src/lib/theme/tokens.ts). Derived shades are computed below.
+ * Type      : Inter, 5 sizes, 3 weights (400 / 500 / 600).
+ * Spacing   : 4px base, 8px rhythm (gaps 8 / 16 / 24 / 32).
+ * Radius    : 6 (chips) · 8 (controls) · 12 (surfaces).
+ * Elevation : borders first; shadows only for overlays.
+ *
+ * Layer order matters: Ant Design lives in its own layer *below* Tailwind
+ * components/utilities, so utility classes can always override AntD styles.
+ */
+@layer theme, base, antd, components, utilities;
+
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Color tokens → utilities (bg-surface, text-fg-muted, border-border, bg-primary …) */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-muted: var(--fg-muted);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-border: var(--primary-border);
+  --color-primary-muted: var(--primary-muted);
+  --color-primary-text: var(--primary-text);
+  --color-on-primary: var(--on-primary);
+  --color-secondary: var(--secondary);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-neutral-soft: var(--neutral-soft);
+
+  --color-mark-success: var(--mark-success);
+  --color-mark-warning: var(--mark-warning);
+  --color-mark-danger: var(--mark-danger);
+  --color-mark-neutral: var(--mark-neutral);
+
+  /* Type scale → utilities (text-page-title, text-body …) */
+  --text-page-title: 24px;
+  --text-page-title--line-height: 32px;
+  --text-page-title--font-weight: 600;
+  --text-page-title--letter-spacing: -0.02em;
+
+  --text-kpi: 28px;
+  --text-kpi--line-height: 36px;
+  --text-kpi--font-weight: 600;
+  --text-kpi--letter-spacing: -0.02em;
+
+  --text-section: 16px;
+  --text-section--line-height: 24px;
+  --text-section--font-weight: 600;
+  --text-section--letter-spacing: -0.005em;
+
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+
+  --text-caption: 13px;
+  --text-caption--line-height: 20px;
+
+  --text-meta: 12px;
+  --text-meta--line-height: 16px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04);
+  --shadow-popover: 0 12px 32px rgb(16 24 40 / 0.12);
+}
+
+/* Derived brand shades — recomputed automatically when the tenant color changes. */
+:root {
+  --primary: #2455e0;
+  --on-primary: #ffffff;
+  --primary-hover: color-mix(in srgb, var(--primary) 88%, black);
+  --primary-soft: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  --primary-border: color-mix(in srgb, var(--primary) 28%, var(--surface));
+  --primary-muted: color-mix(in srgb, var(--primary) 45%, var(--surface));
+  --primary-text: var(--primary);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --primary-hover: color-mix(in srgb, var(--primary) 84%, white);
+  --primary-soft: color-mix(in srgb, var(--primary) 20%, var(--surface));
+  --primary-border: color-mix(in srgb, var(--primary) 40%, var(--surface));
+  --primary-muted: color-mix(in srgb, var(--primary) 50%, var(--surface));
+  --primary-text: color-mix(in srgb, var(--primary) 60%, white);
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--canvas);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--primary-soft);
+  }
+
+  /* Ant Design draws its own focus ring on form controls */
+  .ant-input:focus-visible,
+  .ant-select-focused :focus-visible,
+  .ant-picker-focused :focus-visible {
+    outline: none;
+  }
+}
+
+/* -------------------------------------------------------------------
+ * Ant Design refinements that tokens alone cannot express.
+ * Kept small on purpose — the theme lives in lib/theme/antdTheme.ts.
+ * ----------------------------------------------------------------- */
+@layer components {
+  /* Table: quiet header, hairline rows, no column dividers */
+  .fl-table .ant-table {
+    background: transparent;
+    font-size: 14px;
+  }
+
+  .fl-table .ant-table-thead > tr > th {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    padding-block: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fl-table .ant-table-thead > tr > th::before {
+    display: none !important;
+  }
+
+  .fl-table .ant-table-tbody > tr > td {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fl-table .ant-table-tbody > tr:last-child > td {
+    border-bottom: none;
+  }
+
+  .fl-table .ant-table-tbody > tr.fl-row-clickable {
+    cursor: pointer;
+  }
+
+  /* Skeleton rows match the height of real rows to avoid layout shift */
+  .fl-table .ant-table-tbody > tr.fl-row-skeleton > td {
+    height: 67px;
+  }
+
+  .fl-table .ant-table-container {
+    border-radius: 0;
+  }
+
+  .fl-table .ant-pagination {
+    margin: 0;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Table sitting directly inside a Card: let the card clip corners */
+  .fl-table .ant-table-thead > tr > th:first-child,
+  .fl-table .ant-table-tbody > tr > td:first-child {
+    padding-inline-start: 24px;
+  }
+
+  .fl-table .ant-table-thead > tr > th:last-child,
+  .fl-table .ant-table-tbody > tr > td:last-child {
+    padding-inline-end: 24px;
+  }
+
+  /* Form validation messages: compact, with breathing room above */
+  .ant-form-item .ant-form-item-explain {
+    font-size: 12px;
+    line-height: 16px;
+    min-height: 20px;
+    padding-top: 4px;
+  }
+
+  /* Drawer / Modal: consistent surface headings */
+  .ant-drawer .ant-drawer-header,
+  .ant-modal .ant-modal-header {
+    border-bottom: none;
+  }
+
+  .ant-drawer .ant-drawer-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
