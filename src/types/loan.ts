@@ -65,6 +65,23 @@ export interface Paginated<T> {
   total: number;
 }
 
+export const AMORTIZATION_METHODS = ["annuity", "equalPrincipal"] as const;
+export type AmortizationMethod = (typeof AMORTIZATION_METHODS)[number];
+
+/** One row of an amortization (repayment) schedule. Amounts are whole MNT (₮). */
+export interface ScheduleRow {
+  /** 1-based payment number. */
+  index: number;
+  /** ISO date (YYYY-MM-DD) the payment is due. */
+  dueDate: string;
+  openingBalance: number;
+  principal: number;
+  interest: number;
+  /** principal + interest. */
+  total: number;
+  closingBalance: number;
+}
+
 export interface CreateLoanInput {
   customerName: string;
   phone: string;

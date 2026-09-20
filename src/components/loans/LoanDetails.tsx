@@ -1,5 +1,6 @@
 "use client";
 
+import { Tabs } from "antd";
 import type { ReactNode } from "react";
 
 import { DefinitionList } from "@/components/ui/DefinitionList";
@@ -9,6 +10,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { LoanActivity, LoanDetails as LoanDetailsData } from "@/types/loan";
 
 import { LoanStatusBadge } from "./LoanStatusBadge";
+import { RepaymentSchedule } from "./RepaymentSchedule";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -122,11 +124,25 @@ export function LoanDetails({ loan }: { loan: LoanDetailsData }) {
 
       {loan.status !== "rejected" && (
         <Section title={t("details.repayment")}>
-          {loan.status === "pending" ? (
-            <p className="text-caption text-fg-muted">{t("details.repaymentNotStarted")}</p>
-          ) : (
-            <RepaymentProgress paid={loan.repaidAmount} total={loan.amount} />
-          )}
+          <Tabs
+            items={[
+              {
+                key: "progress",
+                label: t("details.repayment.tabProgress"),
+                children:
+                  loan.status === "pending" ? (
+                    <p className="text-caption text-fg-muted">{t("details.repaymentNotStarted")}</p>
+                  ) : (
+                    <RepaymentProgress paid={loan.repaidAmount} total={loan.amount} />
+                  ),
+              },
+              {
+                key: "schedule",
+                label: t("details.repayment.tabSchedule"),
+                children: <RepaymentSchedule loan={loan} />,
+              },
+            ]}
+          />
         </Section>
       )}
 
