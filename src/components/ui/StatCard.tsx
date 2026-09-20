@@ -29,7 +29,7 @@ export function StatCard({ label, value, change, sentiment = "neutral", comparis
   return (
     <div className="rounded-lg border border-border bg-surface p-6 shadow-card">
       <p className="text-caption text-fg-secondary">{label}</p>
-      <p className="mt-2 text-kpi text-fg">{value}</p>
+      <p className="mt-2 text-section text-fg sm:text-kpi">{value}</p>
       {change !== undefined && (
         <p className="mt-3 flex flex-wrap items-center gap-x-1.5 text-meta">
           <span className={cn("inline-flex items-center gap-1 font-medium", SENTIMENT_CLASS[sentiment])}>

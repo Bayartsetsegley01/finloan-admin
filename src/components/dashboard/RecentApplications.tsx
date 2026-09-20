@@ -68,21 +68,60 @@ export function RecentApplications() {
     [columns],
   );
 
+  const rows = isInitialLoading ? createPlaceholderLoans(RECENT_COUNT) : (data?.items ?? []);
+
   return (
     <Card title={t("recent.title")} padded={false}>
       {error ? (
         <ErrorState title={t("loans.error.title")} description={t("loans.error.description")} onRetry={reload} />
       ) : (
-        <Table<Loan>
-          className="fl-table"
-          rowKey="id"
-          columns={isInitialLoading ? skeletonColumns : columns}
-          dataSource={isInitialLoading ? createPlaceholderLoans(RECENT_COUNT) : data?.items}
-          pagination={false}
-          scroll={{ x: 640 }}
-          rowClassName={isInitialLoading ? () => "fl-row-skeleton" : undefined}
-          aria-busy={isInitialLoading}
-        />
+        <>
+          {/* sm+: table. Below sm the row columns can't fit 390px without truncating
+              every field, so a stacked card list takes over — swapped in by CSS
+              (hidden/sm:hidden), never a JS width check, so SSR output matches the client. */}
+          <div className="hidden sm:block">
+            <Table<Loan>
+              className="fl-table"
+              rowKey="id"
+              columns={isInitialLoading ? skeletonColumns : columns}
+              dataSource={rows}
+              pagination={false}
+              scroll={{ x: 640 }}
+              rowClassName={isInitialLoading ? () => "fl-row-skeleton" : undefined}
+              aria-busy={isInitialLoading}
+            />
+          </div>
+
+          <ul className="sm:hidden" aria-busy={isInitialLoading}>
+            {rows.map((loan, index) =>
+              isInitialLoading ? (
+                <li key={index} aria-hidden className="flex flex-col gap-2 border-b border-border px-6 py-4 last:border-b-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <SkeletonBar className="w-28" />
+                    <SkeletonBar className="w-16" />
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <SkeletonBar className="w-20" />
+                    <SkeletonBar className="w-16" />
+                  </div>
+                  <SkeletonBar className="w-24" />
+                </li>
+              ) : (
+                <li key={loan.id} className="flex flex-col gap-1 border-b border-border px-6 py-4 last:border-b-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="min-w-0 truncate font-medium text-fg">{loan.customerName}</span>
+                    <LoanStatusBadge status={loan.status} />
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-fg-muted tabular-nums">{loan.id}</span>
+                    <span className="font-medium text-fg tabular-nums">{formatCurrency(loan.amount)}</span>
+                  </div>
+                  <span className="text-meta text-fg-muted tabular-nums">{formatDate(loan.appliedAt, lang)}</span>
+                </li>
+              ),
+            )}
+          </ul>
+        </>
       )}
 
       <div className="border-t border-border px-6 py-4">

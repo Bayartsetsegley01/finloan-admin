@@ -80,7 +80,7 @@ export function LoanOverviewChart({ data }: { data: MonthlyLoanOverview[] }) {
   return (
     <Card title={t("overview.title")} description={t("overview.subtitle")} actions={<Legend />}>
       <div className="overflow-x-auto pt-3 pb-1">
-        <div className="min-w-[620px]">
+        <div className="min-w-[740px]">
           <div className="flex">
             {/* Y axis */}
             <div aria-hidden className={cn("relative w-10 shrink-0", CHART_HEIGHT)}>
@@ -154,30 +154,35 @@ export function LoanOverviewChart({ data }: { data: MonthlyLoanOverview[] }) {
         </div>
       </div>
 
-      {/* Table view of the same data for assistive tech */}
-      <table className="sr-only">
-        <caption>{t("overview.chartLabel")}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{t("col.date")}</th>
-            {SERIES.map(({ key, label }) => (
-              <th key={key} scope="col">
-                {t(label)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row) => (
-            <tr key={row.month}>
-              <th scope="row">{formatMonth(row.month, lang)}</th>
-              {SERIES.map(({ key }) => (
-                <td key={key}>{row[key]}</td>
+      {/* Table view of the same data for assistive tech. sr-only goes on this wrapping div,
+          not the table itself: a table's `width` is a CSS floor, so `width: 1px` from
+          sr-only can't shrink it below its min-content width, and with no positioned
+          ancestor its `position: absolute` sizes against the page, blowing out scrollWidth. */}
+      <div className="sr-only">
+        <table>
+          <caption>{t("overview.chartLabel")}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{t("col.date")}</th>
+              {SERIES.map(({ key, label }) => (
+                <th key={key} scope="col">
+                  {t(label)}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((row) => (
+              <tr key={row.month}>
+                <th scope="row">{formatMonth(row.month, lang)}</th>
+                {SERIES.map(({ key }) => (
+                  <td key={key}>{row[key]}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }
