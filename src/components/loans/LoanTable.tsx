@@ -1,11 +1,12 @@
 "use client";
 
-import { App, Button, Dropdown, Table, type TableColumnsType } from "antd";
+import { App, Button, Dropdown, Pagination, Table, type TableColumnsType } from "antd";
 import { Copy, Ellipsis, Eye, SearchX } from "lucide-react";
 import { useCallback, useMemo, type ReactNode } from "react";
 
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonBar } from "@/components/ui/SkeletonBar";
+import { cn } from "@/lib/cn";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Loan } from "@/types/loan";
@@ -177,41 +178,103 @@ export function LoanTable({
   );
 
   const placeholderRows = useMemo(() => createPlaceholderLoans(pageSize), [pageSize]);
+  const rows = isInitialLoading ? placeholderRows : (loans ?? []);
+  const isEmpty = !isInitialLoading && rows.length === 0;
+
+  const emptyState = (
+    <EmptyState
+      icon={SearchX}
+      title={t("loans.empty.title")}
+      description={t("loans.empty.description")}
+      action={emptyAction}
+    />
+  );
+
+  // Shared with the mobile Pagination below: the desktop Table renders its own copy
+  // internally, the card list needs a standalone one, but both drive off the same state.
+  const paginationConfig = {
+    current: page,
+    pageSize,
+    total,
+    showSizeChanger: false,
+    hideOnSinglePage: true,
+    showTotal: (count: number, [from, to]: [number, number]) => t("loans.range", { from, to, total: count }),
+    onChange: onPageChange,
+  };
 
   return (
-    <Table<Loan>
-      className="fl-table"
-      rowKey="id"
-      columns={isInitialLoading ? skeletonColumns : columns}
-      dataSource={isInitialLoading ? placeholderRows : loans}
-      loading={isRefreshing}
-      scroll={{ x: 960 }}
-      aria-busy={isInitialLoading || isRefreshing}
-      rowClassName={() => (isInitialLoading ? "fl-row-skeleton" : "fl-row-clickable")}
-      onRow={isInitialLoading ? undefined : (loan) => ({ onClick: () => onSelect(loan.id) })}
-      locale={{
-        emptyText: (
-          <EmptyState
-            icon={SearchX}
-            title={t("loans.empty.title")}
-            description={t("loans.empty.description")}
-            action={emptyAction}
-          />
-        ),
-      }}
-      pagination={
-        isInitialLoading
-          ? false
-          : {
-              current: page,
-              pageSize,
-              total,
-              showSizeChanger: false,
-              hideOnSinglePage: true,
-              showTotal: (count, [from, to]) => t("loans.range", { from, to, total: count }),
-              onChange: onPageChange,
-            }
-      }
-    />
+    <div className="fl-table">
+      {/* sm+: table. Below sm, seven columns can't fit 390px without truncating every
+          field, so a stacked card list takes over — swapped in by CSS (hidden/sm:hidden),
+          never a JS width check, so SSR output matches the client. */}
+      <div className="hidden sm:block">
+        <Table<Loan>
+          rowKey="id"
+          columns={isInitialLoading ? skeletonColumns : columns}
+          dataSource={rows}
+          loading={isRefreshing}
+          scroll={{ x: 960 }}
+          aria-busy={isInitialLoading || isRefreshing}
+          rowClassName={() => (isInitialLoading ? "fl-row-skeleton" : "fl-row-clickable")}
+          onRow={isInitialLoading ? undefined : (loan) => ({ onClick: () => onSelect(loan.id) })}
+          locale={{ emptyText: emptyState }}
+          pagination={false}
+        />
+      </div>
+
+      <div className="sm:hidden">
+        {isEmpty ? (
+          emptyState
+        ) : (
+          <ul aria-busy={isInitialLoading || isRefreshing} className={cn(isRefreshing && "opacity-60 transition-opacity")}>
+            {rows.map((loan, index) =>
+              isInitialLoading ? (
+                <li key={index} aria-hidden className="flex flex-col gap-2 border-b border-border px-6 py-4 last:border-b-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <SkeletonBar className="w-16" />
+                    <SkeletonBar className="w-20" />
+                  </div>
+                  <SkeletonBar className="w-28" />
+                  <SkeletonBar className="w-20" />
+                  <div className="flex items-center justify-between gap-3">
+                    <SkeletonBar className="w-24" />
+                    <SkeletonBar className="w-20" />
+                  </div>
+                  <SkeletonBar className="w-20" />
+                </li>
+              ) : (
+                <li key={loan.id} className="border-b border-border last:border-b-0">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(loan.id)}
+                    className="flex w-full flex-col gap-1.5 px-6 py-4 text-left transition-colors hover:bg-surface-hover"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium text-fg tabular-nums">{loan.id}</span>
+                      <LoanStatusBadge status={loan.status} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-fg">{loan.customerName}</p>
+                      <p className="text-meta text-fg-muted">{loan.customerId}</p>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-fg-secondary">{t(`loanType.${loan.type}`)}</span>
+                      <span className="font-medium text-fg tabular-nums">{formatCurrency(loan.amount)}</span>
+                    </div>
+                    <span className="text-meta text-fg-muted tabular-nums">{formatDate(loan.appliedAt, lang)}</span>
+                  </button>
+                </li>
+              ),
+            )}
+          </ul>
+        )}
+      </div>
+
+      {!isInitialLoading && !isEmpty && (
+        <div className="flex justify-end">
+          <Pagination {...paginationConfig} />
+        </div>
+      )}
+    </div>
   );
 }
